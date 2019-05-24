@@ -29,9 +29,13 @@ func execWithOutput(cmd *exec.Cmd, flag int) {
 	cmd.Wait()
 }
 func main() {
-	// Parse pkg name
+	// Parse flags
+	var nd = flag.Bool("nd", false, "lsfdkjf")
 	var pkg = flag.String("p", "", "")
 	flag.Parse()
+	if *pkg == "" {
+		return
+	}
 	fmt.Println(*pkg)
 	var lst = strings.SplitN(*pkg, "/", 4)
 
@@ -43,20 +47,22 @@ func main() {
 	fmt.Println(os.Getwd())
 
 	// Download
-	var url = strings.Join(lst[:3], "/")
-	if lst[0] == "golang.org" {
-		url = strings.Replace(url, "golang.org/x", "github.com/golang", -1)
-		fmt.Println(url)
+	if !*nd {
+		var url = strings.Join(lst[:3], "/")
+		if lst[0] == "golang.org" {
+			url = strings.Replace(url, "golang.org/x", "github.com/golang", -1)
+			fmt.Println(url)
+		}
+		var cmd = exec.Command("wget", "https://"+url+"/archive/master.zip", "-c")
+		execWithOutput(cmd, 1)
+		exec.Command("unzip", "master.zip").Run()
+		os.Remove("master.zip")
+		os.RemoveAll(lst[2])
+		os.Rename(lst[2]+"-master", lst[2])
 	}
-	var cmd = exec.Command("wget", "https://"+url+"/archive/master.zip", "-c")
-	execWithOutput(cmd, 1)
 
 	// Install
-	exec.Command("unzip", "master.zip").Run()
-	os.Remove("master.zip")
-	os.RemoveAll(lst[2])
-	os.Rename(lst[2]+"-master", lst[2])
 	os.Chdir(strings.Join(lst[2:], "/"))
-	cmd = exec.Command("go", "install")
+	var cmd = exec.Command("go", "install")
 	execWithOutput(cmd, 1)
 }
