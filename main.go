@@ -31,7 +31,7 @@ func execWithOutput(cmd *exec.Cmd, flag int) {
 func main() {
 	// Parse flags
 	var nd = flag.Bool("nd", false, "lsfdkjf")
-	var pkg = flag.String("p", "", "")
+	var pkg = flag.String("p", "gocv.io/x/gocv", "")
 	flag.Parse()
 	if *pkg == "" {
 		return
@@ -41,22 +41,24 @@ func main() {
 
 	// Chdir
 	var plst = strings.Split(os.Getenv("GOPATH"), ":")
-	os.Chdir(plst[0] + "/src/" + lst[0])
-	os.MkdirAll(lst[1], 0700)
-	os.Chdir("./" + lst[1])
+	os.MkdirAll(plst[0]+"/src/"+lst[0]+"/"+lst[1], 0700)
+	os.Chdir(plst[0] + "/src/" + lst[0] + "/" + lst[1])
 	fmt.Println(os.Getwd())
 
 	// Download
 	if !*nd {
 		var url = strings.Join(lst[:3], "/")
-		if lst[0] == "golang.org" {
-			url = strings.Replace(url, "golang.org/x", "github.com/golang", -1)
-			fmt.Println(url)
+		for i := 0; i < len(mirrors); i++ {
+			if strings.HasPrefix(url, mirrors[i][0]) {
+				url = strings.Replace(url, mirrors[i][0], mirrors[i][1], -1)
+			}
 		}
-		var cmd = exec.Command("wget", "https://"+url+"/archive/master.zip", "-c")
+		fmt.Println(url)
+		var fName = lst[2] + ".zip"
+		var cmd = exec.Command("wget", "https://"+url+"/archive/master.zip", "-c", "-O", fName)
 		execWithOutput(cmd, 1)
-		exec.Command("unzip", "master.zip").Run()
-		os.Remove("master.zip")
+		exec.Command("unzip", fName).Run()
+		os.Remove(fName)
 		os.RemoveAll(lst[2])
 		os.Rename(lst[2]+"-master", lst[2])
 	}
