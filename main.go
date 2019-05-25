@@ -31,7 +31,7 @@ func execWithOutput(cmd *exec.Cmd, flag int) {
 func main() {
 	// Parse flags
 	var nd = flag.Bool("nd", false, "lsfdkjf")
-	var pkg = flag.String("p", "gocv.io/x/gocv", "")
+	var pkg = flag.String("p", "", "")
 	flag.Parse()
 	if *pkg == "" {
 		return
